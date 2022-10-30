@@ -19,23 +19,56 @@ let createToken = async(data)=>{
     return token
 }
 
-let validate = async(token)=>{
-    let data= await jwt.decode(token)
-    console.log(Math.round((+new Date)/1000))
-    console.log()
-    if(Math.round((+new Date)/1000)<data.exp){
-        return{
-            email:data.email,
-            role:data.role,
-            validity:true
-        }
-    }else{
-        return{
-            email:data.email,
-            role:data.role,
-            validity:false
-        }
+
+
+let validate = async(req,res,next)=>{
+    let token = req.headers.authorization.split(" ")[1];
+    let data = await jwt.decode(token)
+    if(Math.round((+new Date)/1000)<data.exp)
+    {
+        next()
+    }
+    else
+    {
+        res.send({
+            statusCode:401,
+            message:"Invalide Token or Token Expired"
+        })
+    }
+
+}
+
+let roleAdmin = async (req,res,next)=>{
+    let token = req.headers.authorization.split(" ")[1];
+    let data = await jwt.decode(token);
+    if(data.role=='admin')
+    {
+        next()
+    }
+    else
+    {
+        res.send({
+            statusCode:401,
+            message:"Only admin can access this"
+        })
     }
 }
 
-module.exports = {hashPassword,hashCompare,createToken,validate}
+let roleStudent = async (req,res,next)=>{
+    let token = req.headers.authorization.split(" ")[1];
+    let data = await jwt.decode(token);
+    if(data.role=='student')
+    {
+        next()
+    }
+    else
+    {
+        res.send({
+            statusCode:401,
+            message:"Only admin can access this"
+        })
+    }
+}
+
+
+module.exports = {hashPassword,hashCompare,createToken,validate,roleAdmin,roleStudent}
